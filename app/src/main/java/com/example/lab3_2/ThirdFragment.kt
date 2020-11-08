@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
-import com.example.lab3_2.databinding.FragmentThirdBinding
 import kotlinx.android.synthetic.main.fragment_third.view.*
 
 class ThirdFragment : Fragment() {
@@ -23,14 +22,6 @@ class ThirdFragment : Fragment() {
         }
         view.bnGoTo2.setOnClickListener {
             Navigation.findNavController(view).navigate(R.id.action_thirdFragment_to_secondFragment)
-        }
-        view.bottomNav.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.about -> {
-                    Navigation.findNavController(view).navigate(R.id.aboutActivity)
-                }
-            }
-            false
         }
         return view
     }

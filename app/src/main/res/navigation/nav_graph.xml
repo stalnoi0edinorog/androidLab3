@@ -10,9 +10,6 @@
         <action
             android:id="@+id/action_mainFragment_to_secondFragment"
             app:destination="@id/secondFragment" />
-        <action
-            android:id="@+id/action_mainFragment_to_aboutActivity"
-            app:destination="@id/aboutActivity" />
     </fragment>
     <fragment
         android:id="@+id/secondFragment"
@@ -36,8 +33,4 @@
             android:id="@+id/action_thirdFragment_to_secondFragment"
             app:destination="@id/secondFragment" />
     </fragment>
-    <activity
-        android:id="@+id/aboutActivity"
-        android:name="com.example.lab3_2.AboutActivity"
-        android:label="AboutActivity" />
 </navigation>

@@ -14,11 +14,11 @@ class ThirdActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.bnGoTo1.setOnClickListener {
-            //setResult(Activity.RESULT_OK) //2
+            //setResult(1) //2
             //finish()     //2
             val intent = Intent(this, MainActivity::class.java) //3
-            //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) //3
-            startActivity(intent) //3
+            //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP //4
+            startActivity(intent)
         }
         binding.bnGoTo2.setOnClickListener {
             finish() //2,3

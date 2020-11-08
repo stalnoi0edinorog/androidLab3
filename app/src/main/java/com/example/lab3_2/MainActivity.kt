@@ -20,6 +20,9 @@ import kotlinx.android.synthetic.main.fragment_first.view.*
 
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var testObserver: TestObserver //test
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -27,17 +30,14 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainTask5Binding.inflate(layoutInflater) //5
         setContentView(binding.root)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val navController = navHostFragment.navController
-
-        val sideBar = findViewById<BottomNavigationView>(R.id.bottomNav)
-        sideBar?.setupWithNavController(navController)
-
-        /*
-        binding.bnGoTo2.setOnClickListener {
+        testObserver = TestObserver() //test
+        lifecycle.addObserver(testObserver)
+        
+        /*binding.bnGoTo2.setOnClickListener { //2,3
             val intent = Intent(this, SecondActivity::class.java)
             startActivity(intent)
         }*/
+
         binding.bottomNav.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.about -> {
