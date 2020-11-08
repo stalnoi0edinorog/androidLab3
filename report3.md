@@ -14,7 +14,7 @@
 ### Задача 2. Навигация (startActivityForResult)
 #### Задание
 Реализовать навигацию между экранами одного приложения согласно изображению ниже с помощью Activity, Intent и метода `startActivityForResult`.
-![эскиз](activities.svg)
+![эскиз](forReport/activities.svg)
 
 #### Пояснения
 * Приложение начинает работу с отображения Activity 1
