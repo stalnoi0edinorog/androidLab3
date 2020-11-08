@@ -7,9 +7,18 @@
 ### Задача 1. Обработка жизненного цикла с помощью Lifecycle-Aware компонентов  
 #### Задание  
 Ознакомиться с Lifecycle-Aware Components по документации: https://developer.android.com/topic/libraries/architecture/lifecycle и выполнить codelabs
-  
-#### Указания  
-В отчете указать, какую новую полезную информацию/навыки удалось усвоить/получить в процессе выполнения задания. 
+
+**ViewModel** - класс, позволяющий сохранять данные при изменении конфигурации устройства. 
+**LifecycleOwner** - это интерфейс с одним методом getLifecycle(), который возвращает состояние жизненного цикла. Являет собой абстракцию владельца жизненного цикла (Activity, Fragment).
+**LiveData** - класс, позволяющий наблюдать за изменениями данных в нескольких компонентах вашего приложения, не создавая явных жестких путей зависимости между ними. Подписчиками LiveData являются Activity и фрагменты. 
+
+#### Какую информацию удалось усвоить?
+* При изменении конфигурации, Activity будет пересоздаваться, а объект MyViewModel продолжит находиться в провайдере. Activity после пересоздания сможет получить этот объект обратно и продолжить работу.
+* LiveData принимает подписчика и уведомляет его об изменениях данных, только когда он находится в состоянии STARTED или RESUMED.
+* Научилась убивать процессы 👍
+* Некоторые элементы пользовательского интерфейса могут сохранять свое состояние, используя собственную onSaveInstanceState реализацию
+* По неведомым мне причинам последний этап не работает так, как указано. Даже при запуске эталонного решения
+
   
 ### Задача 2. Навигация (startActivityForResult)
 #### Задание
@@ -27,8 +36,6 @@
 
 #### Варианты задания
 Во всех вариантах Activity 'About' должна быть доступна из любой другой Activity с помощью Bottom Navigation
-
-Каждую Activity необходимо зарегистрировать в файле AndroidManifest.xml. В отчете указать, что произойдет, если забыть зарегистрировать Activity.
 
 Листинг MainActivity (First Activity)
 
@@ -85,7 +92,7 @@
 
         binding.bnGoTo3.setOnClickListener {
             val intent = Intent(this, ThirdActivity::class.java)
-            startActivityForResult(intent, 2) //2
+            startActivityForResult(intent, 2)
         }
         binding.bottomNav.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -100,7 +107,7 @@
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 2) {
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == 1) {
                 finish()
             }
         }
@@ -125,13 +132,11 @@
         setContentView(binding.root)
 
         binding.bnGoTo1.setOnClickListener {
-            setResult(Activity.RESULT_OK) //2
-            finish()     //2
-            //val intent = Intent(this, MainActivity::class.java) //3
-            //intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP       //3
+            setResult(1)
+            finish() 
         }
         binding.bnGoTo2.setOnClickListener {
-            finish() //2
+            finish()
         }
         binding.bottomNav.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -316,6 +321,9 @@
 ### Задача 3. Навигация (флаги Intent/атрибуты Activity)
 #### Задание
 Решить предыдущую задачу с помощью Activity, Intent и флагов Intent либо атрибутов Activity.
+
+Для решения задачи был использован FLAG_ACTIVITY_CLEAR_TOP. При его установке наблюдается следующее поведение: если в таске уже существует вызываемая Activity, то все Activity, что находились выше в стеке - будут уничтожены.
+
 Файл MainActivity остаётся без изменений.
 
 В SecondActivity меняем меняем listener кнопки перехода в 3-е activity:
@@ -328,11 +336,9 @@
 В ThirdActivity меняем listener кнопки перехода в 1-е activity:
 
     binding.bnGoTo1.setOnClickListener {
-                //setResult(Activity.RESULT_OK) //2
-                //finish()     //2
-                val intent = Intent(this, MainActivity::class.java) //3
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) //3
-                startActivity(intent) //3
+                val intent = Intent(this, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
             }
 
 
@@ -344,10 +350,11 @@
 2. singleTop - ведет себя так же, как и standard. Единственное отличие состоит в том, что новая Activity будет создана, только если такая Activity уже не на вершине стека. В противном случае будет вызван метод onNewIntent().
 3. singleTask - Activity разрешено иметь единственный экземпляр в системе. Если уже существует экземпляр Activity, задача, удерживающая экземпляр, будет сохранена, а Intent обновлён через onNewIntent(). Все activity,что находились выше singleTask Activity - будут уничтожены. 
 В противном случае, будет создана новая Activity и помещена в соответствующую задачу.
-Но если она существует, все Activity, расположенные над этой singleTask Activity, автоматически будут уничтожены, чтобы отобразить на вершине стека нужную Activity. В то же время Intent будет отправлен в singleTask Activity через onNewIntent().
 4. singleInstance - задача, которая располагает singleInstance Activity, может иметь только одну Activity — ту, у которой атрибут singleInstance. Если из этого вида Activity вызывается другая Activity, автоматически создается новое задание для размещения новой Activity. Аналогичным образом, если вызывается singleInstance Activity, будет создана новая задача для размещения этой Activity.
 Тут я не особо поняла, что происходит. Чисто визуально я вижу, что Activity с таким атрибутом "выплывают" по другому, но существенных особенностей не заметила.
 
+Попробовала установить каждый атрибут. Первые два было легко наблюдать, а вот работу singleTask представляю только в теории. Для полного теста нужно второе приложение, чтобы было два таска.
+При установке singleInstance на третью Activity заметила иную анимации при открытии ThirdActivity. При попытке перейти из неё в SecondActivity приложение закрывается, так как ThirdActivity была открыта в новом таске, в котором являлась корневой. Нас вернуло в начальный таск,  о чём говорит соответствующая анимация перехода. Но я думала, что таски можно будет наблюдать при нажатии на Overview. В моём представлении при открытии третьей активити, начальный таск должен был уйти "на фон", но я его не вижу.
 
 ### Задача 5. Навигация (Fragments, Navigation Graph) 
 Решить предыдущую задачу (с расширенным графом) с использованием navigation graph. Все Activity должны быть заменены на фрагменты, кроме Activity 'About', которая должна остаться самостоятельной Activity.
@@ -365,8 +372,6 @@
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
         val navController = navHostFragment.navController
 
-        val sideBar = findViewById<BottomNavigationView>(R.id.bottomNav)
-        sideBar?.setupWithNavController(navController)
         binding.bottomNav.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.about -> {
@@ -414,16 +419,6 @@
         view.bnGoTo3.setOnClickListener {
             Navigation.findNavController(view).navigate(R.id.action_secondFragment_to_thirdFragment)
         }
-
-        view.bottomNav.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.about -> {
-                    Navigation.findNavController(view).navigate(R.id.aboutActivity)
-                }
-            }
-            false
-        }
-
         return view
     }
     }
@@ -444,14 +439,6 @@
         }
         view.bnGoTo2.setOnClickListener {
             Navigation.findNavController(view).navigate(R.id.action_thirdFragment_to_secondFragment)
-        }
-        view.bottomNav.setOnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.about -> {
-                    Navigation.findNavController(view).navigate(R.id.aboutActivity)
-                }
-            }
-            false
         }
         return view
     }
@@ -507,17 +494,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.2" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemTextColor="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1"
-        app:menu="@menu/menu_nav" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
     
 Листинг fragment_second.xml:
@@ -546,18 +522,7 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemTextColor="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1"
-        app:menu="@menu/menu_nav" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+       </androidx.constraintlayout.widget.ConstraintLayout>
     
 Листин fragment_third.xml:
 
@@ -585,19 +550,16 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemTextColor="#000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1"
-        app:menu="@menu/menu_nav" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+Вид Navigation Graph:
+![эскиз](forReport/nav_graph.JPG)
     
 ### Выводы
 
-Будут
+В ходе данной лабораторной работы были рассмотрены новые классы и интерфейсы. Также были изученые различные методы навигации в приложении:
+* навигация с помощью стандартных методов Android SDK: startCtivity(), finish(), startActivityForResult(), onActivityResult();
+* Bottom Navigation;
+* навигация с помощью стандартных методов SDK и флагов Intent;
+* навигация c использованием фрагментов.
+ 
