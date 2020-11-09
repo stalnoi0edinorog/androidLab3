@@ -373,9 +373,6 @@
         val binding = ActivityMainTask5Binding.inflate(layoutInflater) //5
         setContentView(binding.root)
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host) as NavHostFragment
-        val navController = navHostFragment.navController
-
         binding.bottomNav.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.about -> {
