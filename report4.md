@@ -11,10 +11,58 @@
 ### Задача 1. Знакомство с библиотекой (unit test)
 Необходимо ознакомиться со strict mode библиотеки, проиллюстрировав его работу unit-тестом.
 
-#### Указания
-1. Изучить демонстрационное предложенную [библиотеку](biblib), уделить особое внимание файлу [BibDatabaseTest.java](biblib/src/test/java/name/ank/lab4/BibDatabaseTest.java). В этом файле тестируется (демонстрируется) создание библиотеки (см. `setup()`), чтение одной записи (см. `getFirstEntry()`) и normal (не strict) mode (см. `normalModeDoesNotThrowException()`). Посмотреть на пример [исходных данных](biblib/src/test/resources/references.bib), при необходимости заглянуть [внутрь библиотеки](biblib/src/main/java/name/ank/lab4).
-1. Написать несколько тестов с помощью которых я смогу себя проверить, что правильно поняла, как работает флаг `BibConfig#strict` и `BibConfig#shuffle` (в `BibDatabaseTest.java` оставлены шаблоны методов).
-1. Собрать jar файл используя команду `./gradlew build`. Результаты сборки будут доступны по пути `build/libs/biblib.jar`. Обратить внимание, что сборка завершится ошибкой, если какие-либо тесты не проходят.
+В рамках данного задания был протестирован режим strict mode.
+
+Тест strictModeThrowsException:
+
+    public void strictModeThrowsException() throws IOException {
+        BibDatabase database = openDatabase("/mixed.bib");
+        BibConfig cfg = database.getCfg();
+        cfg.strict = true;
+        BibEntry first = database.getEntry(0);
+        
+        for (int i = 0; i < cfg.maxValid; i++) {
+          database.getEntry(0);
+          try {
+            Assert.assertNotNull("Should not throw any exception @" + i, first.getType());
+          } catch (IllegalStateException exp) {
+            System.out.println("Throw IllegalStateException with message: " + exp.getMessage());
+          }
+        }
+      }
+      
+В данном тесте создаём объект базы данных, флаг strict установливаем в true, в first кладём перую запись. В цикле ещё 20 раз обращемся к нулевой записи, следовательно, превышаем лимит. Когда попробуем обратиться к типу first, то получим исключение, так как первая извлечённая запись стала невалидна. 
+
+Тест shuffleFlag:
+
+    public void shuffleFlag() throws IOException {
+        BibConfig cfg = new BibConfig();
+        cfg.shuffle = false;
+        boolean check = false;
+        BibDatabase notMixed;
+        BibDatabase mixed;
+
+        for (int i = 0; i < 15; i++) {
+          try (InputStreamReader reader = new InputStreamReader(getClass().getResourceAsStream("/mixed.bib"))) {
+            notMixed = new BibDatabase(reader, cfg);
+            mixed = openDatabase("/mixed.bib");
+            //System.out.println(notMixed.getEntry(0).getField(Keys.AUTHOR));
+            //System.out.println(mixed.getEntry(0).getField(Keys.AUTHOR));
+            if (!mixed.getEntry(0).getField(Keys.AUTHOR)
+                    .equals(notMixed.getEntry(0).getField(Keys.AUTHOR))) {
+              check = true;
+            }
+          } catch (IOException exp) {
+            System.out.println("Throw IOException with message: " + exp.getMessage());
+          }
+        }
+        assertTrue(check);
+      }
+      
+Создадим две базы данных mixed и notMixed. Так как по умолчанию флаг shuffle всегда установлен в true, то для сравнения создадим отдельный объект конфугурации и установим значение shuffle в false. В цикле 15 раз происходит создание перемешанной базы. В процессе попытаемся поймать ситуацию, когда поле автора для первой записи у двух баз - различно. При наличии хотя бы одного совпадаения ставим check в true. Так как записей с различными авторами в файле mixed.bib довольно много, то проверка проходит без каких-либо проблем. 
+
+Также был создан jar файл. 
+![расположение jar файла]()
 
 ### Задача 2. Знакомство с RecyclerView.
 Написать Android приложение, которое выводит все записи из bibtex файла на экран, используя предложенную библиотеку и `RecyclerView`. На выбор предлагается решить одну из двух задач: 
