@@ -65,14 +65,115 @@
 ![расположение jar файла]()
 
 ### Задача 2. Знакомство с RecyclerView.
-Написать Android приложение, которое выводит все записи из bibtex файла на экран, используя предложенную библиотеку и `RecyclerView`. На выбор предлагается решить одну из двух задач: 
+Написать Android приложение, которое выводит все записи из bibtex файла на экран, используя предложенную библиотеку и `RecyclerView`. Будет решаться задача обычной сложности - однородный список
 
-#### Задача 2.1. Однородный список (задача обычной сложности).
-В качестве исходных данных использовать файл [articles.bib](samples/articles.bib) . Обратить внимание, что все записи имеют одинаковый формат (@article).
+Листинг MainActivity:
 
-#### Задача 2.2*. Неоднородный список (задача повышенной сложности).
-В качестве исходных данных использовать файл [mixed.bib](samples/mixed.bib) . Обратить внимание, что записи имеют разный формат (@article, @misc, @inproceedings, etc). Использовать разное визуальное отображение для записей разного типа.
+    class MainActivity : AppCompatActivity() {
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
 
+            val manager = LinearLayoutManager(this);
+            val binding = ActivityMainBinding.inflate(layoutInflater)
+            binding.recyclerView.apply {
+                addItemDecoration(DividerItemDecoration(context, manager.orientation))
+                layoutManager = manager
+                adapter = Adapter(resources.openRawResource(R.raw.articles))
+            }
+            setContentView(binding.root)
+        }
+    }
+    
+Листинг Adapter:
+
+    class Adapter(base: InputStream) : RecyclerView.Adapter<Adapter.ViewHolder>() {
+        private val reader = InputStreamReader(base)
+        private val database = BibDatabase(reader)
+
+        class ViewHolder(binding: ArticleBinding) : RecyclerView.ViewHolder(binding.root) {
+            val author = binding.author
+            val title = binding.title
+            val journal = binding.journal
+            val pages = binding.pages
+        }
+
+        override fun getItemCount(): Int = database.size()
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            val binding = ArticleBinding.inflate(inflater, parent, false)
+            return ViewHolder(binding)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val entry = database.getEntry(position)
+            holder.author.text = "Author(s): " + entry.getField(Keys.AUTHOR) + "\n"
+            holder.title.text = "Title: " + entry.getField(Keys.TITLE) + "\n"
+            holder.journal.text = "Journal: " + entry.getField(Keys.JOURNAL) + "\n"
+            holder.pages.text = "Pages: " + (entry.getField(Keys.PAGES) ?: "unknown")
+        }
+    }
+
+Листинг activity_main.xml:
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:scrollbars="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+    </LinearLayout>
+
+Листинг article.xml:
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="top">
+
+        <TextView
+            android:id="@+id/author"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/author" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/title" />
+
+        <TextView
+            android:id="@+id/journal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/journal" />
+
+        <TextView
+            android:id="@+id/pages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:text="@string/pages" />
+    </LinearLayout>
+
+Вот так это всё выглядит: 
+![расположение jpg-файла]()
 
 #### Пояснения
 1. При выводе записей не обязательно выводить все поля. Необходимо придумать некоторый "адекватный" формат отображения данных. Выбор формата отображения пояснить в отчете.
